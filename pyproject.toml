@@ -1,0 +1,41 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "fnpricing"
+version = "0.1.0"
+description = "STO 기초자산 감성평가 파이프라인"
+requires-python = ">=3.11"
+dependencies = [
+    "apache-airflow>=2.8.0",
+    "pyyaml>=6.0",
+    "pydantic>=2.0",
+    "httpx>=0.27.0",
+    "langchain>=0.2.0",
+    "langchain-openai>=0.1.0",
+    "langgraph>=0.1.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.23",
+]
+realestate = [
+    "PublicDataReader>=1.1.0",  # TransactionTool 의 실거래가 조회
+]
+anthropic = [
+    "langchain-anthropic>=0.1.0",
+    "anthropic>=0.25.0",
+]
+observability = [
+    "langfuse>=2.0.0",  # LangfuseBackend (TraceBackend 구현체)
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["core", "projects", "interfaces"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]

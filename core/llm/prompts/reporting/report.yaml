@@ -1,0 +1,26 @@
+version: 1
+description: |
+  ReportBuilder — 분석 subgraph 직렬화 텍스트를 받아 짧은 STO 상업용 부동산 평가 요약 생성.
+  Variables:
+    graph_text — serialize_subgraph_for_llm 출력 (노드/엣지 텍스트화)
+
+  자산별 prompt 차별화가 필요해지면 prompts/reporting/<asset>.yaml 로 확장.
+  지금은 상가형 부동산 평가 표현을 기본으로 둠.
+
+system: |
+  You write short STO commercial real estate evaluation summaries.
+  Use only the provided graph (extracted from public APIs: vworld 토지/지목/공시지가/용도지역지구).
+  Highlight: land area, primary land use zone, latest official land price,
+  and any zone restrictions that affect commercial use.
+  If a category has no data, say so briefly.
+  Respond as JSON: {"summary": str}.
+
+user: |
+  $graph_text
+
+schema:
+  type: object
+  required: [summary]
+  properties:
+    summary: { type: string }
+  additionalProperties: false

@@ -1,0 +1,53 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+*.egg
+build/
+dist/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# 환경 변수 / 시크릿 (절대 commit 금지)
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+
+# 런타임 산출물
+var/
+analysis/
+*.log
+
+# Airflow
+airflow.cfg
+airflow.db
+airflow-webserver.pid
+logs/
+unittests.cfg
+
+# 임시
+*.tmp
+*.bak
+~*
+.cache/

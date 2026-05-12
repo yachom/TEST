@@ -1,0 +1,605 @@
+{
+  "generated_at": "2026-05-11",
+  "subject": {
+    "source": "juso_api",
+    "address": {
+      "input": "서울 관악구 관악로28길 20",
+      "road": "서울특별시 관악구 관악로28길 20 (봉천동)",
+      "jibun": "서울특별시 관악구 봉천동 21-15",
+      "building_management_no": "1162010100100210015031497"
+    },
+    "identifiers": {
+      "pnu": "1162010100100210015",
+      "bjdong_code": "1162010100",
+      "lawd_cd": "11620",
+      "sigungu_cd": "11620",
+      "bjdong_cd": "10100",
+      "land_type_code": "1",
+      "bun": "0021",
+      "ji": "0015"
+    },
+    "juso_candidates": [
+      {
+        "siNm": "서울특별시",
+        "lnbrMnnm": "21",
+        "bdKdcd": "0",
+        "jibunAddr": "서울특별시 관악구 봉천동 21-15",
+        "buldSlno": "0",
+        "bdMgtSn": "1162010100100210015031497",
+        "zipNo": "08736",
+        "roadAddr": "서울특별시 관악구 관악로28길 20 (봉천동)",
+        "admCd": "1162010100",
+        "liNm": "",
+        "bdNm": "",
+        "mtYn": "0",
+        "rnMgtSn": "116204160016",
+        "roadAddrPart2": " (봉천동)",
+        "sggNm": "관악구",
+        "buldMnnm": "20",
+        "roadAddrPart1": "서울특별시 관악구 관악로28길 20",
+        "emdNm": "봉천동",
+        "lnbrSlno": "15",
+        "engAddr": "20 Gwanak-ro 28-gil, Gwanak-gu, Seoul",
+        "udrtYn": "0",
+        "rn": "관악로28길",
+        "detBdNmList": "",
+        "emdNo": "01"
+      }
+    ]
+  },
+  "workflow": {
+    "manual_reference": [
+      "서울부동산정보광장 / 일사편리 / 지자체 부동산 종합정보",
+      "건축물대장",
+      "토지이용계획확인원 / 토지이음",
+      "등기사항증명서"
+    ],
+    "automation": "주소 -> 법정동코드/지번/PNU -> 토지 API + 건축물대장 API + 토지이용계획 API + 실거래가 API"
+  },
+  "official_document_checklist": [
+    {
+      "purpose": "토지 기본정보",
+      "document_or_service": "토지대장 / 토지임야대장",
+      "check": "지번, 지목, 면적, 토지이동 이력"
+    },
+    {
+      "purpose": "건물 기본정보",
+      "document_or_service": "건축물대장",
+      "check": "대지위치, 연면적, 주용도, 층수, 사용승인일, 위반건축물 여부"
+    },
+    {
+      "purpose": "집합건물 호실 확인",
+      "document_or_service": "집합건축물 표제부 + 전유부",
+      "check": "해당 호실 면적, 용도, 대지권 관련 정보"
+    },
+    {
+      "purpose": "용도지역/규제",
+      "document_or_service": "토지이용계획확인원 / 토지이음",
+      "check": "용도지역, 지구, 행위제한, 토지거래허가구역 여부"
+    },
+    {
+      "purpose": "권리관계",
+      "document_or_service": "등기사항증명서",
+      "check": "소유권, 근저당, 압류, 가압류, 전세권, 임차권등기, 대지권"
+    }
+  ],
+  "ownership_and_registry_notice": {
+    "available_from_open_apis": false,
+    "reason": "현재 소유자, 소유권 이전 이력, 근저당/압류/가압류 등 권리관계는 공개 공공 Open API 조회 대상이 아니라 등기사항증명서 영역입니다.",
+    "recommended_workflow": [
+      "이 도구로 주소 기반 공개 공공데이터를 수집합니다.",
+      "인터넷등기소에서 등기사항증명서를 사람이 직접 열람/발급합니다.",
+      "발급받은 등기사항증명서 PDF를 별도 분석 단계에 입력해 리포트에 합칩니다."
+    ],
+    "do_not_automate": [
+      "대량 스크래핑",
+      "캡차/인증/결제 우회",
+      "약관상 허용되지 않는 자동 열람/발급"
+    ]
+  },
+  "building_register": {
+    "basis": {
+      "response": {
+        "header": {
+          "resultCode": "00",
+          "resultMsg": "NORMAL SERVICE"
+        },
+        "body": {
+          "items": {
+            "item": [
+              {
+                "rnum": 1,
+                "platPlc": "서울특별시 관악구 봉천동 21-15번지",
+                "sigunguCd": "11620",
+                "bjdongCd": "10100",
+                "platGbCd": "0",
+                "bun": "0021",
+                "ji": "0015",
+                "mgmBldrgstPk": 102216616,
+                "mgmUpBldrgstPk": 0,
+                "bldgId": "2120071220000377",
+                "regstrGbCd": "1",
+                "regstrGbCdNm": "일반",
+                "regstrKindCd": "2",
+                "regstrKindCdNm": "일반건축물",
+                "newPlatPlc": "서울특별시 관악구 관악로28길 20 (봉천동)",
+                "bldNm": " ",
+                "splotNm": " ",
+                "block": " ",
+                "lot": " ",
+                "bylotCnt": 0,
+                "naRoadCd": "116204160016",
+                "naBjdongCd": "10101",
+                "naUgrndCd": "0",
+                "naMainBun": "20",
+                "naSubBun": "0",
+                "jiyukCd": "1022",
+                "jiguCd": " ",
+                "guyukCd": " ",
+                "jiyukCdNm": "제2종일반주거지역",
+                "jiguCdNm": " ",
+                "guyukCdNm": " ",
+                "crtnDay": "20240905"
+              }
+            ]
+          },
+          "numOfRows": "20",
+          "pageNo": "1",
+          "totalCount": "1"
+        }
+      }
+    },
+    "title": {
+      "response": {
+        "header": {
+          "resultCode": "00",
+          "resultMsg": "NORMAL SERVICE"
+        },
+        "body": {
+          "items": {
+            "item": [
+              {
+                "rnum": 1,
+                "platPlc": "서울특별시 관악구 봉천동 21-15번지",
+                "sigunguCd": "11620",
+                "bjdongCd": "10100",
+                "platGbCd": "0",
+                "bun": "0021",
+                "ji": "0015",
+                "mgmBldrgstPk": 102216616,
+                "regstrGbCd": "1",
+                "regstrGbCdNm": "일반",
+                "regstrKindCd": "2",
+                "regstrKindCdNm": "일반건축물",
+                "newPlatPlc": "서울특별시 관악구 관악로28길 20 (봉천동)",
+                "bldNm": " ",
+                "splotNm": " ",
+                "block": " ",
+                "lot": " ",
+                "bylotCnt": 0,
+                "naRoadCd": "116204160016",
+                "naBjdongCd": "10101",
+                "naUgrndCd": "0",
+                "naMainBun": "20",
+                "naSubBun": "0",
+                "dongNm": " ",
+                "mainAtchGbCd": "0",
+                "mainAtchGbCdNm": "주건축물",
+                "platArea": 400,
+                "archArea": 220.5,
+                "bcRat": 55.13,
+                "totArea": 718.25,
+                "vlRatEstmTotArea": 602.88,
+                "vlRat": 150.72,
+                "strctCd": "21",
+                "strctCdNm": "철근콘크리트구조",
+                "etcStrct": "철근콘크리트구조",
+                "mainPurpsCd": "04000",
+                "mainPurpsCdNm": "제2종근린생활시설",
+                "etcPurps": "제1종 및 제2종 근린생활시설,점포,주택",
+                "roofCd": "20",
+                "roofCdNm": "기와",
+                "etcRoof": "평옥개",
+                "hhldCnt": 0,
+                "fmlyCnt": 0,
+                "heit": 0,
+                "grndFlrCnt": 3,
+                "ugrndFlrCnt": 1,
+                "rideUseElvtCnt": 0,
+                "emgenUseElvtCnt": 0,
+                "atchBldCnt": 0,
+                "atchBldArea": 0,
+                "totDongTotArea": 718.25,
+                "indrMechUtcnt": 0,
+                "indrMechArea": 0,
+                "oudrMechUtcnt": 0,
+                "oudrMechArea": 0,
+                "indrAutoUtcnt": 0,
+                "indrAutoArea": 0,
+                "oudrAutoUtcnt": 0,
+                "oudrAutoArea": 0,
+                "pmsDay": " ",
+                "stcnsDay": " ",
+                "useAprDay": "19750416",
+                "pmsnoYear": " ",
+                "pmsnoKikCd": " ",
+                "pmsnoKikCdNm": " ",
+                "pmsnoGbCd": " ",
+                "pmsnoGbCdNm": " ",
+                "hoCnt": 0,
+                "engrGrade": " ",
+                "engrRat": 0,
+                "engrEpi": 0,
+                "gnBldGrade": " ",
+                "gnBldCert": 0,
+                "itgBldGrade": " ",
+                "itgBldCert": 0,
+                "crtnDay": "20220813",
+                "rserthqkDsgnApplyYn": "0",
+                "rserthqkAblty": " "
+              }
+            ]
+          },
+          "numOfRows": "20",
+          "pageNo": "1",
+          "totalCount": "1"
+        }
+      }
+    },
+    "recap_title": {
+      "response": {
+        "header": {
+          "resultCode": "00",
+          "resultMsg": "NORMAL SERVICE"
+        },
+        "body": {
+          "items": {
+            "item": []
+          },
+          "numOfRows": "20",
+          "pageNo": "1",
+          "totalCount": "0"
+        }
+      }
+    },
+    "exclusive_unit": {
+      "response": {
+        "header": {
+          "resultCode": "00",
+          "resultMsg": "NORMAL SERVICE"
+        },
+        "body": {
+          "items": {
+            "item": []
+          },
+          "numOfRows": "20",
+          "pageNo": "1",
+          "totalCount": "0"
+        }
+      }
+    },
+    "exclusive_section": {
+      "response": {
+        "header": {
+          "resultCode": "00",
+          "resultMsg": "NORMAL SERVICE"
+        },
+        "body": {
+          "items": {
+            "item": []
+          },
+          "numOfRows": "20",
+          "pageNo": "1",
+          "totalCount": "0"
+        }
+      }
+    },
+    "floor": {
+      "response": {
+        "header": {
+          "resultCode": "00",
+          "resultMsg": "NORMAL SERVICE"
+        },
+        "body": {
+          "items": {
+            "item": [
+              {
+                "rnum": 1,
+                "platPlc": "서울특별시 관악구 봉천동 21-15번지",
+                "sigunguCd": "11620",
+                "bjdongCd": "10100",
+                "platGbCd": "0",
+                "bun": "0021",
+                "ji": "0015",
+                "mgmBldrgstPk": 102216616,
+                "newPlatPlc": "서울특별시 관악구 관악로28길 20 (봉천동)",
+                "bldNm": " ",
+                "splotNm": " ",
+                "block": " ",
+                "lot": " ",
+                "naRoadCd": "116204160016",
+                "naBjdongCd": "10101",
+                "naUgrndCd": "0",
+                "naMainBun": "20",
+                "naSubBun": "0",
+                "dongNm": " ",
+                "flrGbCd": "20",
+                "flrGbCdNm": "지상",
+                "flrNo": 2,
+                "flrNoNm": "2층",
+                "strctCd": "21",
+                "strctCdNm": "철근콘크리트구조",
+                "etcStrct": "철근콘크리트구조",
+                "mainPurpsCd": "03001",
+                "mainPurpsCdNm": "소매점",
+                "etcPurps": "제1종근린생활시설(소매점)",
+                "mainAtchGbCd": "0",
+                "mainAtchGbCdNm": "주건축물",
+                "area": 115,
+                "areaExctYn": "0",
+                "crtnDay": "20240905"
+              },
+              {
+                "rnum": 2,
+                "platPlc": "서울특별시 관악구 봉천동 21-15번지",
+                "sigunguCd": "11620",
+                "bjdongCd": "10100",
+                "platGbCd": "0",
+                "bun": "0021",
+                "ji": "0015",
+                "mgmBldrgstPk": 102216616,
+                "newPlatPlc": "서울특별시 관악구 관악로28길 20 (봉천동)",
+                "bldNm": " ",
+                "splotNm": " ",
+                "block": " ",
+                "lot": " ",
+                "naRoadCd": "116204160016",
+                "naBjdongCd": "10101",
+                "naUgrndCd": "0",
+                "naMainBun": "20",
+                "naSubBun": "0",
+                "dongNm": " ",
+                "flrGbCd": "10",
+                "flrGbCdNm": "지하",
+                "flrNo": 1,
+                "flrNoNm": "지1",
+                "strctCd": "21",
+                "strctCdNm": "철근콘크리트구조",
+                "etcStrct": "철근콘크리트구조",
+                "mainPurpsCd": "03001",
+                "mainPurpsCdNm": "소매점",
+                "etcPurps": "보일러실",
+                "mainAtchGbCd": "0",
+                "mainAtchGbCdNm": "주건축물",
+                "area": 45,
+                "areaExctYn": " ",
+                "crtnDay": "20220813"
+              },
+              {
+                "rnum": 3,
+                "platPlc": "서울특별시 관악구 봉천동 21-15번지",
+                "sigunguCd": "11620",
+                "bjdongCd": "10100",
+                "platGbCd": "0",
+                "bun": "0021",
+                "ji": "0015",
+                "mgmBldrgstPk": 102216616,
+                "newPlatPlc": "서울특별시 관악구 관악로28길 20 (봉천동)",
+                "bldNm": " ",
+                "splotNm": " ",
+                "block": " ",
+                "lot": " ",
+                "naRoadCd": "116204160016",
+                "naBjdongCd": "10101",
+                "naUgrndCd": "0",
+                "naMainBun": "20",
+                "naSubBun": "0",
+                "dongNm": " ",
+                "flrGbCd": "10",
+                "flrGbCdNm": "지하",
+                "flrNo": 1,
+                "flrNoNm": "지1",
+                "strctCd": "21",
+                "strctCdNm": "철근콘크리트구조",
+                "etcStrct": "철근콘크리트구조",
+                "mainPurpsCd": "03001",
+                "mainPurpsCdNm": "소매점",
+                "etcPurps": "점포(식품제조업)",
+                "mainAtchGbCd": "0",
+                "mainAtchGbCdNm": "주건축물",
+                "area": 70.37,
+                "areaExctYn": " ",
+                "crtnDay": "20220813"
+              },
+              {
+                "rnum": 4,
+                "platPlc": "서울특별시 관악구 봉천동 21-15번지",
+                "sigunguCd": "11620",
+                "bjdongCd": "10100",
+                "platGbCd": "0",
+                "bun": "0021",
+                "ji": "0015",
+                "mgmBldrgstPk": 102216616,
+                "newPlatPlc": "서울특별시 관악구 관악로28길 20 (봉천동)",
+                "bldNm": " ",
+                "splotNm": " ",
+                "block": " ",
+                "lot": " ",
+                "naRoadCd": "116204160016",
+                "naBjdongCd": "10101",
+                "naUgrndCd": "0",
+                "naMainBun": "20",
+                "naSubBun": "0",
+                "dongNm": " ",
+                "flrGbCd": "20",
+                "flrGbCdNm": "지상",
+                "flrNo": 1,
+                "flrNoNm": "1층",
+                "strctCd": "21",
+                "strctCdNm": "철근콘크리트구조",
+                "etcStrct": "철근콘크리트구조",
+                "mainPurpsCd": "04001",
+                "mainPurpsCdNm": "일반음식점",
+                "etcPurps": "일반음식점",
+                "mainAtchGbCd": "0",
+                "mainAtchGbCdNm": "주건축물",
+                "area": 110.83,
+                "areaExctYn": " ",
+                "crtnDay": "20220813"
+              },
+              {
+                "rnum": 5,
+                "platPlc": "서울특별시 관악구 봉천동 21-15번지",
+                "sigunguCd": "11620",
+                "bjdongCd": "10100",
+                "platGbCd": "0",
+                "bun": "0021",
+                "ji": "0015",
+                "mgmBldrgstPk": 102216616,
+                "newPlatPlc": "서울특별시 관악구 관악로28길 20 (봉천동)",
+                "bldNm": " ",
+                "splotNm": " ",
+                "block": " ",
+                "lot": " ",
+                "naRoadCd": "116204160016",
+                "naBjdongCd": "10101",
+                "naUgrndCd": "0",
+                "naMainBun": "20",
+                "naSubBun": "0",
+                "dongNm": " ",
+                "flrGbCd": "20",
+                "flrGbCdNm": "지상",
+                "flrNo": 1,
+                "flrNoNm": "1층",
+                "strctCd": "21",
+                "strctCdNm": "철근콘크리트구조",
+                "etcStrct": "철근콘크리트구조",
+                "mainPurpsCd": "03001",
+                "mainPurpsCdNm": "소매점",
+                "etcPurps": "소매점",
+                "mainAtchGbCd": "0",
+                "mainAtchGbCdNm": "주건축물",
+                "area": 93.83,
+                "areaExctYn": " ",
+                "crtnDay": "20220813"
+              },
+              {
+                "rnum": 6,
+                "platPlc": "서울특별시 관악구 봉천동 21-15번지",
+                "sigunguCd": "11620",
+                "bjdongCd": "10100",
+                "platGbCd": "0",
+                "bun": "0021",
+                "ji": "0015",
+                "mgmBldrgstPk": 102216616,
+                "newPlatPlc": "서울특별시 관악구 관악로28길 20 (봉천동)",
+                "bldNm": " ",
+                "splotNm": " ",
+                "block": " ",
+                "lot": " ",
+                "naRoadCd": "116204160016",
+                "naBjdongCd": "10101",
+                "naUgrndCd": "0",
+                "naMainBun": "20",
+                "naSubBun": "0",
+                "dongNm": " ",
+                "flrGbCd": "20",
+                "flrGbCdNm": "지상",
+                "flrNo": 2,
+                "flrNoNm": "2층",
+                "strctCd": "21",
+                "strctCdNm": "철근콘크리트구조",
+                "etcStrct": "철근콘크리트구조",
+                "mainPurpsCd": "04402",
+                "mainPurpsCdNm": "사무소",
+                "etcPurps": "근린생활시설(사무소)",
+                "mainAtchGbCd": "0",
+                "mainAtchGbCdNm": "주건축물",
+                "area": 105.5,
+                "areaExctYn": "0",
+                "crtnDay": "20220813"
+              },
+              {
+                "rnum": 7,
+                "platPlc": "서울특별시 관악구 봉천동 21-15번지",
+                "sigunguCd": "11620",
+                "bjdongCd": "10100",
+                "platGbCd": "0",
+                "bun": "0021",
+                "ji": "0015",
+                "mgmBldrgstPk": 102216616,
+                "newPlatPlc": "서울특별시 관악구 관악로28길 20 (봉천동)",
+                "bldNm": " ",
+                "splotNm": " ",
+                "block": " ",
+                "lot": " ",
+                "naRoadCd": "116204160016",
+                "naBjdongCd": "10101",
+                "naUgrndCd": "0",
+                "naMainBun": "20",
+                "naSubBun": "0",
+                "dongNm": " ",
+                "flrGbCd": "20",
+                "flrGbCdNm": "지상",
+                "flrNo": 3,
+                "flrNoNm": "3층",
+                "strctCd": "21",
+                "strctCdNm": "철근콘크리트구조",
+                "etcStrct": "철근콘크리트구조",
+                "mainPurpsCd": "04402",
+                "mainPurpsCdNm": "사무소",
+                "etcPurps": "주택,점포",
+                "mainAtchGbCd": "0",
+                "mainAtchGbCdNm": "주건축물",
+                "area": 177.72,
+                "areaExctYn": " ",
+                "crtnDay": "20220813"
+              }
+            ]
+          },
+          "numOfRows": "20",
+          "pageNo": "1",
+          "totalCount": "7"
+        }
+      }
+    },
+    "zone": {
+      "response": {
+        "header": {
+          "resultCode": "00",
+          "resultMsg": "NORMAL SERVICE"
+        },
+        "body": {
+          "items": {
+            "item": [
+              {
+                "rnum": 1,
+                "platPlc": "서울특별시 관악구 봉천동 21-15번지",
+                "sigunguCd": "11620",
+                "bjdongCd": "10100",
+                "platGbCd": "0",
+                "bun": "0021",
+                "ji": "0015",
+                "mgmBldrgstPk": 102216616,
+                "newPlatPlc": "서울특별시 관악구 관악로28길 20 (봉천동)",
+                "splotNm": " ",
+                "block": " ",
+                "lot": " ",
+                "jijiguGbCd": "1",
+                "jijiguGbCdNm": "용도지역코드",
+                "jijiguCd": "1022",
+                "jijiguCdNm": "제2종일반주거지역",
+                "reprYn": "1",
+                "etcJijigu": "제2종일반주거지역",
+                "crtnDay": "20220813"
+              }
+            ]
+          },
+          "numOfRows": "20",
+          "pageNo": "1",
+          "totalCount": "1"
+        }
+      }
+    }
+  }
+}

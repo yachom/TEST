@@ -1,0 +1,71 @@
+# 음악 저작권 감성평가 — 뉴스 검색어 그룹 설정
+
+active_asset_classes:
+  - music_copyright
+
+groups:
+
+  # -----------------------------------------------------------------------
+  # 1. 공통 STO 제도 신호 (부동산과 동일하게 적용)
+  # -----------------------------------------------------------------------
+  - name: sto_system_common
+    active: true
+    priority: 1
+    schedule_type: daily
+    provider: naver
+    asset_family: null
+    asset_class: null
+    queries:
+      - 토큰증권 제도화
+      - 조각투자 증권
+      - 투자계약증권
+      - STO 투자자 보호
+
+  # -----------------------------------------------------------------------
+  # 2. K-pop 및 음악 산업 동향
+  # -----------------------------------------------------------------------
+  - name: kpop_industry
+    active: true
+    priority: 2
+    schedule_type: daily
+    provider: naver
+    asset_family: intellectual_property
+    asset_class: music_copyright
+    queries:
+      - K-pop 글로벌 성과
+      - 음원 스트리밍 매출
+      - 아이돌 앨범 판매
+      - 한류 음악 시장
+      - 음악 저작권 수익
+
+  # -----------------------------------------------------------------------
+  # 3. 저작권법 및 규제
+  # -----------------------------------------------------------------------
+  - name: music_copyright_regulation
+    active: true
+    priority: 3
+    schedule_type: daily
+    provider: naver
+    asset_family: intellectual_property
+    asset_class: music_copyright
+    queries:
+      - 음악 저작권법 개정
+      - 저작권료 분배 기준
+      - 음원 플랫폼 규제
+      - 저작권 침해 판결
+
+  # -----------------------------------------------------------------------
+  # 4. 스트리밍 시장 동향
+  # -----------------------------------------------------------------------
+  - name: streaming_market
+    active: true
+    priority: 4
+    schedule_type: daily
+    provider: naver
+    asset_family: intellectual_property
+    asset_class: music_copyright
+    queries:
+      - 멜론 음원차트
+      - 스포티파이 한국 진출
+      - 유튜브 뮤직 수익
+      - 음원 스트리밍 점유율

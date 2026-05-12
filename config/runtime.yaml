@@ -1,0 +1,59 @@
+# Runtime wiring for infrastructure implementations.
+#
+# Environment variables can override sensitive or deployment-specific values.
+# Keep API keys out of this file; store the env var name here instead.
+#
+# provider 값에 따라 사용하는 LangChain 백엔드가 결정된다:
+#   stub      → StubLLMClient (테스트용, 실제 API 미호출)
+#   openai    → langchain-openai / ChatOpenAI  (pip install langchain-openai)
+#   anthropic → langchain-anthropic / ChatAnthropic (pip install langchain-anthropic)
+#
+# Claude 로 전환 예시:
+#   provider: anthropic
+#   model: claude-sonnet-4-6
+#   api_key_env: ANTHROPIC_API_KEY
+
+database:
+  url: sqlite:///./var/fnpricing.db
+  schema_version: 1
+
+llm:
+  default:
+    provider: anthropic
+    model: claude-haiku-4-5-20251001
+    api_key_env: ANTHROPIC_API_KEY
+    temperature: 0.0
+    max_tokens: 2048
+    timeout_seconds: 60
+  roles:
+    ontology_tagging:
+      model: claude-haiku-4-5-20251001
+      temperature: 0.0
+      max_tokens: 2048
+    article_analysis:
+      model: claude-haiku-4-5-20251001
+      temperature: 0.0
+      max_tokens: 4096
+    report_generation:
+      model: claude-haiku-4-5-20251001
+      temperature: 0.2
+      max_tokens: 4096
+
+# ---------------------------------------------------------------------------
+# Observability — LLM 호출 / 에이전트 흐름 추적
+# ---------------------------------------------------------------------------
+# backend 선택:
+#   noop     — 기본값. 외부 호출 0. (CI, 로컬, 추적 불필요 시)
+#   stdout   — JSON line 로깅. 로컬 개발 디버깅용.
+#   langfuse — Langfuse Cloud / Self-hosted. LANGFUSE_PUBLIC_KEY / LANGFUSE_SECRET_KEY 필요.
+#
+# 환경변수 override: FNPRICING_OBSERVABILITY_BACKEND=langfuse
+# Langfuse Cloud 무료 tier: 50,000 events/월. https://cloud.langfuse.com 가입 후 키 발급.
+
+observability:
+  backend: noop
+  stdout_include_prompts: false
+  langfuse:
+    public_key_env: LANGFUSE_PUBLIC_KEY
+    secret_key_env: LANGFUSE_SECRET_KEY
+    host: https://cloud.langfuse.com

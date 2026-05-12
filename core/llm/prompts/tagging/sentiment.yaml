@@ -1,0 +1,90 @@
+version: 1
+description: |
+  OntologyTaggingService — 뉴스 아티클을 STO 자산 시그널로 LLM 태깅.
+  Variables:
+    factors     — comma-separated 평가 요인 (없을 시 "일반 시장 신호" 호출자가 채움)
+    title       — 아티클 제목
+    description — 아티클 본문 요약
+
+  Schema enum 값은 core/shared/domain/{asset, ontology_schema}.py 와 동기화 필요.
+  tests/core/llm/test_prompt_catalog.py 가 일관성 검증.
+
+system: |
+  You are an STO asset ontology tagger.
+  Evaluate news articles for the following factors: $factors.
+
+user: |
+  Title: $title
+  Description: $description
+
+schema:
+  type: object
+  required:
+    - asset_family
+    - asset_class
+    - signal_type
+    - influence_direction
+    - influence_strength
+    - influence_period
+    - applicability
+    - applied_scope
+    - affected_evaluation_factors
+    - affected_asset_subtypes
+    - event_type
+    - summary
+    - rationale
+    - confidence
+  properties:
+    asset_family:
+      type: string
+      enum: [real_estate, infrastructure, financial, intellectual_property, collectible, livestock]
+    asset_class:
+      type: string
+      enum:
+        - commercial
+        - residential
+        - silver_town
+        - logistics
+        - hotel
+        - data_center
+        - solar
+        - wind
+        - bond
+        - loan
+        - music_copyright
+        - content_ip
+        - art
+        - luxury
+        - hanwoo
+    signal_type:
+      type: string
+      enum: [market, policy, regulation, macro, demand_supply, risk, sto_system]
+    influence_direction:
+      type: string
+      enum: [positive, negative, neutral, mixed]
+    influence_strength:
+      type: string
+      enum: [strong, moderate, weak]
+    influence_period:
+      type: string
+      enum: [short, medium, long]
+    applicability:
+      type: string
+      enum: [direct, needs_verification, background_only, not_relevant]
+    applied_scope:
+      type: string
+      enum: [national, regional, local, asset_specific]
+    affected_evaluation_factors:
+      type: array
+      items: { type: string }
+    affected_asset_subtypes:
+      type: array
+      items: { type: string }
+    event_type: { type: string }
+    summary: { type: string }
+    rationale: { type: string }
+    confidence:
+      type: number
+      minimum: 0.0
+      maximum: 1.0
+  additionalProperties: false

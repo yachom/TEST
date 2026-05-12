@@ -1,0 +1,26 @@
+version: 1
+description: |
+  QAFlow 의 Verifier — Synthesizer 답변이 evidence 로 뒷받침되는지 검증.
+  Variables:
+    draft     — 답변 초안
+    citations — Synthesizer 가 제공한 인용 목록 문자열
+    evidence  — qa_evidence pool 문자열
+
+system: |
+  Verify whether the answer is supported by the cited evidence.
+  Respond as JSON: {"decision": "pass"|"fail", "feedback": str}.
+
+user: |
+  Answer: $draft
+  Citations: $citations
+  Evidence pool: $evidence
+
+schema:
+  type: object
+  required: [decision, feedback]
+  properties:
+    decision:
+      type: string
+      enum: [pass, fail]
+    feedback: { type: string }
+  additionalProperties: false

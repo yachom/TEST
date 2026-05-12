@@ -1,0 +1,25 @@
+version: 1
+description: |
+  QAFlow 의 Synthesizer — evidence pool 기반 답변 초안 작성.
+  Variables:
+    question         — 사용자 질문
+    evidence         — qa_evidence 리스트의 문자열 표현
+    feedback_section — verifier 실패 피드백 라인 (없으면 빈 문자열)
+
+system: |
+  Synthesize an answer for the STO asset question using only the provided evidence.
+  Cite evidence sources inline. Respond as JSON: {"answer": str, "citations": [str]}.
+
+user: |
+  Question: $question
+  Evidence: $evidence$feedback_section
+
+schema:
+  type: object
+  required: [answer, citations]
+  properties:
+    answer: { type: string }
+    citations:
+      type: array
+      items: { type: string }
+  additionalProperties: false

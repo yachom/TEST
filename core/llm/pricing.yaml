@@ -1,0 +1,40 @@
+# LLM 모델 토큰 단가 (USD per 1M tokens)
+#
+# 출처: 각 provider 공식 가격표. PolicyGate / observability 비용 환산에 사용.
+# 모델 단가 변경 시 이 파일만 수정 — 코드 변경 불필요.
+#
+# 매핑 없는 모델은 fallback 단가로 처리 (안전한 상한 추정).
+# Prompt caching / batch API 할인 등은 향후 별도 필드로 확장.
+
+models:
+  # OpenAI
+  gpt-4o-mini:
+    input_usd_per_mtok: 0.15
+    output_usd_per_mtok: 0.60
+  gpt-4o:
+    input_usd_per_mtok: 2.50
+    output_usd_per_mtok: 10.00
+
+  # Anthropic (날짜 suffix 포함/미포함 둘 다 등록 — runtime.yaml 이 어느 표기를 쓰는지에 따라)
+  claude-opus-4-7:
+    input_usd_per_mtok: 15.0
+    output_usd_per_mtok: 75.0
+  claude-sonnet-4-6:
+    input_usd_per_mtok: 3.0
+    output_usd_per_mtok: 15.0
+  claude-haiku-4-5:
+    input_usd_per_mtok: 0.80
+    output_usd_per_mtok: 4.0
+  claude-haiku-4-5-20251001:
+    input_usd_per_mtok: 0.80
+    output_usd_per_mtok: 4.0
+
+  # 테스트/Stub
+  stub:
+    input_usd_per_mtok: 0.0
+    output_usd_per_mtok: 0.0
+
+# 매핑 없는 모델 — 안전 상한 추정용
+fallback:
+  input_usd_per_mtok: 1.0
+  output_usd_per_mtok: 5.0

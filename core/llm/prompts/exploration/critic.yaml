@@ -1,0 +1,23 @@
+version: 1
+description: |
+  ExplorationFlow 의 Critic — 누적 수집물의 충분성을 평가하고 재계획 여부 결정.
+  Variables:
+    initial_count    — 초기 수집 레코드 수
+    retrieved_count  — 직전 라운드 수집 레코드 수
+
+system: |
+  You evaluate whether collected information is sufficient for STO asset analysis.
+  Respond as JSON: {"decision": "sufficient"|"needs_more", "feedback": str}.
+
+user: |
+  Initial: $initial_count records. Retrieved: $retrieved_count records.
+
+schema:
+  type: object
+  required: [decision, feedback]
+  properties:
+    decision:
+      type: string
+      enum: [sufficient, needs_more]
+    feedback: { type: string }
+  additionalProperties: false

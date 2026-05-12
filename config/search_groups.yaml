@@ -1,0 +1,192 @@
+# STO 기초자산 감성평가 — 뉴스 검색어 그룹 설정
+# 검색어를 수정하려면 이 파일만 편집하면 된다. 코드를 수정하지 않는다.
+
+active_asset_classes:
+  - commercial   # 현재 MVP 대상
+
+groups:
+
+  # -----------------------------------------------------------------------
+  # 1. 공통 STO 제도 신호 — 자산군 무관, 항상 활성화
+  # -----------------------------------------------------------------------
+  - name: sto_system_common
+    active: true
+    priority: 1
+    schedule_type: daily
+    provider: naver
+    asset_family: null
+    asset_class: null
+    max_display: 10
+    max_pages: 1
+    sort: date
+    post_process: true
+    enable_llm_tagging: true
+    queries:
+      - 토큰증권 제도화
+      - 조각투자 증권
+      - 투자계약증권
+      - 토큰증권 유통
+      - STO 투자자 보호
+      - 장외거래중개업
+      - 발행인 계좌관리기관
+      - 토큰증권 발행
+
+  # -----------------------------------------------------------------------
+  # 2. 거시 금융환경 신호 — 자산군 무관, 배경 맥락
+  # -----------------------------------------------------------------------
+  - name: macro_financial
+    active: true
+    priority: 2
+    schedule_type: daily
+    provider: naver
+    asset_family: null
+    asset_class: null
+    max_display: 10
+    max_pages: 1
+    sort: date
+    post_process: true
+    enable_llm_tagging: true
+    queries:
+      - 기준금리 부동산
+      - 국고채 금리 부동산
+      - 부동산 PF 리스크
+      - 상업용 부동산 대출
+      - 대체투자 시장
+      - 부동산 투자심리
+      - 유동성 부동산 시장
+
+  # -----------------------------------------------------------------------
+  # 3. 상업용 부동산 시장 신호 — MVP 핵심 그룹
+  # -----------------------------------------------------------------------
+  - name: commercial_real_estate_market
+    active: true
+    priority: 3
+    schedule_type: daily
+    provider: naver
+    asset_family: real_estate
+    asset_class: commercial
+    max_display: 10
+    max_pages: 2
+    sort: date
+    post_process: true
+    enable_llm_tagging: true
+    queries:
+      - 상업용 부동산 시장
+      - 상업용 부동산 거래량
+      - 상업용 부동산 공실률
+      - 상업용 부동산 임대료
+      - 상업용 부동산 투자수익률
+      - 상가 공실률
+      - 상가 임대료
+      - 상가 거래량
+      - 상가 임대수익률
+      - 상가 매물 증가
+
+  # -----------------------------------------------------------------------
+  # 4. 임차인 업황 신호
+  # -----------------------------------------------------------------------
+  - name: tenant_business_conditions
+    active: true
+    priority: 4
+    schedule_type: daily
+    provider: naver
+    asset_family: real_estate
+    asset_class: commercial
+    max_display: 10
+    max_pages: 1
+    sort: date
+    post_process: true
+    enable_llm_tagging: true
+    queries:
+      - 자영업 폐업
+      - 소상공인 폐업
+      - 소상공인 매출 감소
+      - 소상공인 매출 회복
+      - 외식업 폐업
+      - 카페 폐업
+      - 소상공인 대출 연체
+      - 소비 침체 자영업
+
+  # -----------------------------------------------------------------------
+  # 5. 상업용 부동산 규제 신호
+  # -----------------------------------------------------------------------
+  - name: commercial_real_estate_regulation
+    active: true
+    priority: 5
+    schedule_type: weekly
+    provider: naver
+    asset_family: real_estate
+    asset_class: commercial
+    max_display: 10
+    max_pages: 1
+    sort: date
+    post_process: true
+    enable_llm_tagging: true
+    queries:
+      - 상가건물 임대차보호법
+      - 상가 용도변경
+      - 건축물 용도 규제
+      - 근린생활시설 규제
+      - 상업시설 영업 규제
+      - 소방시설 기준 강화
+      - 주차장 설치 기준
+
+  # -----------------------------------------------------------------------
+  # 6. 도시계획·개발 신호
+  # -----------------------------------------------------------------------
+  - name: urban_planning_development
+    active: true
+    priority: 6
+    schedule_type: weekly
+    provider: naver
+    asset_family: real_estate
+    asset_class: null
+    max_display: 10
+    max_pages: 1
+    sort: date
+    post_process: true
+    enable_llm_tagging: true
+    queries:
+      - 도시관리계획 변경
+      - 지구단위계획 변경
+      - 용도지역 변경
+      - 정비구역 지정
+      - 역세권 개발
+      - 복합개발 사업
+      - 상권 활성화 사업
+      - 도시재생 사업
+
+  # -----------------------------------------------------------------------
+  # 향후 추가 예정 — 비활성 상태로 준비
+  # -----------------------------------------------------------------------
+  - name: residential_real_estate_market
+    active: false
+    priority: 10
+    schedule_type: daily
+    provider: naver
+    asset_family: real_estate
+    asset_class: residential
+    max_display: 10
+    max_pages: 1
+    sort: date
+    post_process: true
+    enable_llm_tagging: true
+    queries:
+      - 아파트 거래량
+      - 주거용 부동산 시장
+
+  - name: logistics_market
+    active: false
+    priority: 11
+    schedule_type: daily
+    provider: naver
+    asset_family: real_estate
+    asset_class: logistics
+    max_display: 10
+    max_pages: 1
+    sort: date
+    post_process: true
+    enable_llm_tagging: true
+    queries:
+      - 물류센터 시장
+      - 물류센터 임대료

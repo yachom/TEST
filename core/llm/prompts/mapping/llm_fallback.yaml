@@ -1,0 +1,45 @@
+version: 1
+description: |
+  OntologyMapper 의 LLM fallback — 어댑터 미등록 입력을 텍스트 평탄화 후 LLM 태깅.
+  비정형 입력(웹검색·PDF 등)을 OntologyTag 으로 변환.
+  Variables:
+    flattened_text — raw dict 의 key:value 라인 평탄화 결과
+
+  Schema enum 은 sentiment.yaml 의 부분집합. 정합성 테스트로 검증.
+
+system: |
+  Tag the input as an STO market signal.
+  Respond as JSON: {"signal_type", "influence_direction", "influence_strength", "summary", "confidence"}.
+
+user: |
+  $flattened_text
+
+schema:
+  type: object
+  required:
+    - signal_type
+    - influence_direction
+    - influence_strength
+    - summary
+    - confidence
+  properties:
+    signal_type:
+      type: string
+      enum: [market, policy, regulation, macro, demand_supply, risk, sto_system]
+    influence_direction:
+      type: string
+      enum: [positive, negative, neutral, mixed]
+    influence_strength:
+      type: string
+      enum: [strong, moderate, weak]
+    affected_evaluation_factors:
+      type: array
+      items: { type: string }
+    event_type: { type: string }
+    summary: { type: string }
+    rationale: { type: string }
+    confidence:
+      type: number
+      minimum: 0.0
+      maximum: 1.0
+  additionalProperties: false

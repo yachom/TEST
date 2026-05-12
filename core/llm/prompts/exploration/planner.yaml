@@ -1,0 +1,35 @@
+version: 1
+description: |
+  ExplorationFlow 의 Planner — 1차 수집 결과를 보고 추가 수집 계획을 LLM 에 제안받는다.
+  Variables:
+    tools         — comma-separated 허용 도구 목록 (PolicyGate.allowed_tools)
+    address       — 분석 대상 주소
+    initial_count — 초기 수집 레코드 수
+    retrieved_section — 직전 라운드 수집 결과 라인 (없으면 빈 문자열)
+    feedback_section  — critic 재계획 피드백 라인 (없으면 빈 문자열)
+
+system: |
+  You are a data exploration planner for STO asset evaluation.
+  Allowed tools: $tools.
+  Given collected information, propose additional tool calls with rationale.
+  Respond as JSON: {"calls": [{"tool": str, "input": dict, "rationale": str}]}.
+
+user: |
+  Analysis target address: $address
+  Initial collection: $initial_count records (already collected — do not repeat)$retrieved_section$feedback_section
+
+schema:
+  type: object
+  required: [calls]
+  properties:
+    calls:
+      type: array
+      items:
+        type: object
+        required: [tool, input, rationale]
+        properties:
+          tool: { type: string }
+          input: { type: object }
+          rationale: { type: string }
+        additionalProperties: false
+  additionalProperties: false

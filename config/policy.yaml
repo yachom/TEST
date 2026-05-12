@@ -1,0 +1,71 @@
+# STO 기초자산 감성평가 — 실행 정책 및 임계치 설정
+#
+# API 사용량 제한은 사전 체크 대신 호출 후 응답 기반 키 로테이션으로 처리한다.
+# core/shared/infra/api_key_rotator.py 참조.
+
+rule_filter:
+  min_text_length: 15
+  # 자산군 키워드 — 이 중 하나 이상이 제목+설명에 포함되어야 통과
+  asset_keywords:
+    - 상가
+    - 상업용 부동산
+    - 오피스
+    - 근린생활시설
+    - 임대료
+    - 공실
+    - 부동산
+    - 토큰증권
+    - STO
+    - 소상공인
+    - 자영업
+    - 역세권
+    - 도시재생
+    - 물류센터
+    - 아파트
+    - 주거
+  # 신호 키워드 — 이 중 하나 이상이 포함되어야 통과
+  signal_keywords:
+    - 상승
+    - 하락
+    - 증가
+    - 감소
+    - 회복
+    - 위축
+    - 급등
+    - 급락
+    - 개선
+    - 악화
+    - 규제
+    - 완화
+    - 강화
+    - 변경
+    - 도입
+    - 폐지
+    - 리스크
+    - 위험
+    - 전망
+    - 예상
+    - 정책
+    - 법안
+    - 시행
+
+semantic_dedup:
+  similarity_threshold: 0.92
+  # 정책·규제 뉴스는 더 엄격한 기준 적용 (동일 문자열이라도 시행일이 다를 수 있음)
+  policy_similarity_threshold: 0.97
+
+ontology_tagging:
+  confidence_threshold: 0.7
+  # 태깅 제외: applicability가 아래 값이면 Graph 적재 제외
+  exclude_applicability:
+    - not_relevant
+
+graph_signal:
+  min_confidence: 0.7
+
+transaction:
+  months: 12                    # 시군구 단위 조회 기간 (월)
+  always_trigger_review: true   # POC: 동작 검증을 위해 항상 등기 PDF 안내. 추후 false 로 전환.
+  registry_review_threshold:
+    total_count: 20             # 마스킹 매칭 거래가 N건 이상이거나
+    recent_12_months: 5         # 최근 12개월 내 N건 이상이면 등기 PDF 업로드 안내

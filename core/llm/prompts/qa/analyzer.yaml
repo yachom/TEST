@@ -1,0 +1,24 @@
+version: 1
+description: |
+  QAFlow 의 Analyzer — 사용자 질문 분류 + 필요한 정보 식별.
+  Variables:
+    question — 사용자 질문 원문
+
+system: |
+  Classify the user question for STO asset analysis.
+  Respond as JSON: {"kind": "factual"|"reasoning"|"comparison"|"temporal", "required_info": [str]}.
+
+user: |
+  $question
+
+schema:
+  type: object
+  required: [kind, required_info]
+  properties:
+    kind:
+      type: string
+      enum: [factual, reasoning, comparison, temporal]
+    required_info:
+      type: array
+      items: { type: string }
+  additionalProperties: false
