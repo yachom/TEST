@@ -385,6 +385,63 @@ ABC + placeholder 구현체로 한 번에 열어둠. 실제 구현은 추후 채
 
 ---
 
+## D-19: Airflow 배치를 별도 레포로 분리 (`fnpricing-batch`)
+
+**시점**: 2026-05-12
+**상태**: 채택
+
+**결정**: Airflow DAG 와 배치 운영 환경을 별도 레포 `fnpricing-batch` 로 분리.
+본 레포 (`fnpricing-real`) 는 라이브러리 + on-demand 분석 + 자산 정의 + CLI batch 검증용 유지.
+두 레포는 **공유 DB 로 데이터 연결, 코드 복제는 0** (배치 레포가 본 레포를 pip 의존으로 import).
+
+**구조**:
+```
+fnpricing-real    (현 레포)           fnpricing-batch (신규)
+  core/                                  dags/
+    tools/, agents/, evaluation/, ...      commercial_news_collection.py
+    pipelines/tasks.py    ← 사용 →         music_news_collection.py
+  projects/<asset>/profile,target,config   secrets/airflow_provider.py
+  interfaces/composition, cli.py           pyproject.toml
+                                              └ fnpricing @ git+...
+
+         └─────── 공유 PostgreSQL (추후) ───────┘
+             core/shared/stores/Sqlite*Store
+```
+
+**이유**:
+- **Airflow 의존성 격리** — on-demand 사용자가 Airflow 안 깔아도 됨 (가벼움)
+- **사고 격리** — DAG 변경이 on-demand 분석 흐름을 깨뜨리지 않음
+- **운영 분리** — Airflow 운영자가 core 코드 접근 불필요. 권한 분리 가능
+- **표준 패턴** — Airflow 코드와 라이브러리 분리는 일반적
+
+**대안 (기각)**:
+- **Monorepo (sub-directory)** — POC 단계에 과함. 빌드 도구 (Bazel/Nx) 필요. Airflow 의존성이 항상 따라옴.
+- **Git Submodule** — 학습 곡선 큼, `git pull --recurse-submodules` 누락 함정. 사용자 IDE 통합 약함.
+- **코드 복제** — drift 발생, 양쪽 수정 필요, 정본 모호. 모든 면에서 나쁨.
+
+**fnpricing-real 변경**:
+- `pyproject.toml` 의 `apache-airflow` 를 optional extras (`[airflow]`) 로 강등 — 기본 의존성 제거
+- `core/pipelines/tasks.py` 시그니처를 `PipelineState` TypedDict 로 안정화 — 외부 DAG 가 dict 키 오타 없이 사용
+- `projects/<asset>/dags/` 는 배치 레포 검증 후 삭제 (Phase 3)
+- 본 결정 추가
+
+**fnpricing-batch 구성**:
+- DAG 파일 (현 레포에서 이관)
+- `AirflowVariableSecretProvider` — `SecretProvider` ABC 구현 (Airflow Variables 어댑터)
+- `pyproject.toml` — `fnpricing @ git+https://github.com/yachom/TEST.git@<tag>` 의존 (운영은 tag 핀, dev 는 `@main`)
+- `secrets/`, `airflow_config/`, `README.md`
+
+**호환성 관리**:
+- 본 레포 release 마다 git tag 찍기 (`v0.1.0`, `v0.2.0`, ...)
+- 배치 레포는 tag 핀 → 핵심 라이브러리 변경이 배치를 무작위로 깨지 않음
+- `core/pipelines/tasks.py::PipelineState` 가 두 레포의 안정 경계
+
+**미래 확장 자리**:
+- 추후 `fnpricing-core` 추출 → `fnpricing-real`/`fnpricing-batch`/`fnpricing-dashboard` 모두 core 만 의존.
+  POC 단계에선 본 레포가 라이브러리 겸 on-demand 앱.
+
+---
+
 ## 결정 추가 양식
 
 새 결정을 추가할 때 다음 양식으로:

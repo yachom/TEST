@@ -27,26 +27,31 @@ POC 종료 후 두 자산의 공통점·차이점을 기반으로 추후 자산 
 
 ## 두 실행 흐름
 
-본 시스템은 두 개의 흐름이 공유 저장소(`signal_store` + `GraphStore`) 를 매개로 연결된다. **두 흐름 모두 본 저장소에서 다룬다**.
+본 시스템은 두 개의 흐름이 공유 저장소(`signal_store` + `GraphStore`) 를 매개로 연결된다.
+**본 레포는 라이브러리 + on-demand 분석**, **배치 파이프라인은 별도 레포 [`fnpricing-batch`](https://github.com/yachom/fnpricing-batch) 가 운영** ([D-19](docs/DECISIONS.md#d-19)).
 
-1. **배치 파이프라인 (Airflow)**
-   주기적으로 외부 신호(뉴스 / 규제 / 시장 동향)를 수집하여 자산 무관 Market & Policy Signal 을 적재한다.
+1. **배치 파이프라인 (Airflow)** — 별도 레포
+   주기적으로 외부 신호(뉴스 / 규제 / 시장 동향)를 수집하여 자산 무관 Market & Policy Signal 을 적재.
+   본 레포의 `core/pipelines/tasks.py` 를 import 해 DAG 가 호출.
 
-2. **On-demand 주소 분석** (멀티 에이전트 Flow)
+2. **On-demand 주소 분석** (멀티 에이전트 Flow) — 본 레포
    주소 입력 → 공적 API 1차 수집 → ExplorationFlow (자율 추가 수집) → 온톨로지 매핑 → 그래프 DB → 보고서 → QAFlow.
 
-두 흐름은 같은 온톨로지 어휘를 공유하므로 그래프 traversal 으로 자동 연결된다.
+두 흐름은 같은 온톨로지 어휘 + 공유 DB (추후 PostgreSQL) 를 통해 자동 연결된다.
 
 상세 흐름은 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) 참조.
 
 ## 빠른 시작
 
 ```bash
-# 의존성 설치 (기본)
+# 의존성 설치 (기본 — Airflow 없음, 가벼움)
 pip install -e ".[dev]"
 
 # 실제 LLM / Langfuse observability 사용 시
 pip install -e ".[dev,anthropic,observability]"
+
+# 로컬에서 Airflow 도 띄우고 싶다면 (보통은 fnpricing-batch 레포 사용)
+pip install -e ".[dev,airflow]"
 
 # 전체 파이프라인 1회 실행 (Mock Provider)
 python -m interfaces.cli run-once

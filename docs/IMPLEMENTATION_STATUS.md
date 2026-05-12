@@ -13,7 +13,7 @@
 
 | 항목 | 상태 |
 |---|---|
-| 배치 파이프라인 (Airflow) | 뼈대 동작 (Mock Provider) |
+| 배치 파이프라인 (Airflow) | **별도 레포 `fnpricing-batch` 운영** ([D-19](DECISIONS.md#d-19)). 본 레포는 라이브러리 + CLI `run-once` 검증용 |
 | On-demand 주소 분석 | 뼈대 동작 (Stub LLM + Mock 도구) + `claims: list[EvaluationClaim]` 반환 (현재 stub) |
 | 테스트 | **119 개 통과** |
 | CLI | `run-once`, `search`, `analyze-address`, `init-db` (`.env` 자동 로드) |
