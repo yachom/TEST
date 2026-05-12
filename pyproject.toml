@@ -15,6 +15,7 @@ dependencies = [
     "langchain>=0.2.0",
     "langchain-openai>=0.1.0",
     "langgraph>=0.1.0",
+    "python-dotenv>=1.0",     # 로컬 개발 시 .env 자동 로드 (CLI 진입점에서 호출)
 ]
 
 [project.optional-dependencies]

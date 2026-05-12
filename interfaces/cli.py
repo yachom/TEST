@@ -5,19 +5,49 @@
     python -m interfaces.cli run-once --asset music_copyright
     python -m interfaces.cli search "상가 공실률" --no-save
     python -m interfaces.cli analyze-address "강남구 역삼동 123-45"
+
+환경변수 로드:
+    프로젝트 루트의 .env 파일을 자동으로 읽는다 (python-dotenv).
+    이미 export 된 변수는 .env 가 덮어쓰지 않음 (override=False).
+    Airflow / Cloud 환경에서는 .env 가 없거나 별도 secret manager 가 주입한다.
 """
 from __future__ import annotations
 
 import argparse
 import uuid
 
-from interfaces.composition import (
+# .env 를 가장 먼저 로드 — composition.py / settings.py 가 import 되기 전에 환경변수 확정.
+# Airflow / 컨테이너 환경에서는 .env 가 없으면 silently no-op.
+import os as _os
+from pathlib import Path as _Path
+from dotenv import dotenv_values as _dotenv_values
+
+def _load_dotenv_for_blanks() -> None:
+    """프로젝트 루트의 .env 를 읽어 환경변수에 반영.
+
+    정책: 이미 의미있는 값으로 export 된 변수는 보존, 빈 문자열/공백/누락만 .env 로 채움.
+    이유:
+      - 운영 환경(Airflow Variables, K8s Secret 등) 이 주입한 진짜 값을 .env 가 덮어쓰지 않음
+      - conda env / shell rc 에 빈 값으로 export 된 경우는 .env 로 채워줌 (로컬 개발 편의)
+    """
+    env_path = _Path(__file__).resolve().parent.parent / ".env"
+    if not env_path.exists():
+        return
+    for key, value in (_dotenv_values(env_path) or {}).items():
+        if value is None:
+            continue
+        if not _os.environ.get(key, "").strip():
+            _os.environ[key] = value
+
+_load_dotenv_for_blanks()
+
+from interfaces.composition import (  # noqa: E402  — load_dotenv 다음에 import 해야 키 인식
     build_address_analysis_orchestrator,
     build_pipeline_from_profile,
     build_schema_initializer,
     get_profile_by_asset_class,
 )
-from core.shared.domain.asset import AssetClass
+from core.shared.domain.asset import AssetClass  # noqa: E402
 
 
 def cmd_run_once(args) -> None:
