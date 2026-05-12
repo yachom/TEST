@@ -14,16 +14,18 @@ Observability:
 from __future__ import annotations
 
 import uuid
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Protocol
 
 from core.agents.base import AgentContext, EvidenceTrace
+from core.agents.evaluation_orchestrator import EvaluationOrchestrator, NoOpEvaluationOrchestrator
 from core.shared.infra.observability.base import TraceBackend, trace_scope
 from core.shared.infra.observability.noop_backend import NoOpBackend
 
 if TYPE_CHECKING:
     from core.agents.exploration.flow import ExplorationFlow
     from core.agents.qa.flow import QAFlow
+    from core.shared.domain.evaluation import AssetProfile, EvaluationClaim
     from core.shared.stores.graph_store import GraphStore
     from core.shared.stores.report_store import ReportStore
 
@@ -46,6 +48,11 @@ class AnalysisResult:
     report: dict
     qa_flow: "QAFlow"
     evidence: EvidenceTrace
+    claims: list = field(default_factory=list)   # list[EvaluationClaim] — 확장 자리
+
+    def __post_init__(self) -> None:
+        if self.claims is None:
+            self.claims = []
 
 
 class Orchestrator:
@@ -59,6 +66,8 @@ class Orchestrator:
         qa_flow: "QAFlow",
         report_store: "ReportStore | None" = None,
         trace_backend: TraceBackend | None = None,
+        evaluation_orchestrator: EvaluationOrchestrator | None = None,
+        profile: "AssetProfile | None" = None,
     ) -> None:
         self._collector = initial_collector
         self._exploration = exploration_flow
@@ -68,6 +77,9 @@ class Orchestrator:
         self._qa = qa_flow
         self._report_store = report_store
         self._trace_backend = trace_backend or NoOpBackend()
+        # 확장 자리 — placeholder 구현체 (현재는 빈 list 반환). 실제 점수 산출은 추후.
+        self._evaluator = evaluation_orchestrator or NoOpEvaluationOrchestrator()
+        self._profile = profile
 
     def analyze(self, address: str) -> AnalysisResult:
         scope_id = f"analysis_{uuid.uuid4().hex[:12]}"
@@ -97,11 +109,25 @@ class Orchestrator:
             if self._report_store is not None:
                 self._report_store.save(address, report)
 
+            # 확장 자리: 3축 평가 통합. profile 미주입 / NoOp 이면 빈 list.
+            claims: list = []
+            if self._profile is not None:
+                try:
+                    claims = self._evaluator.evaluate(
+                        asset_id=scope_id,
+                        profile=self._profile,
+                        scope_id=scope_id,
+                    )
+                except Exception:
+                    # 평가 실패가 분석 흐름을 막지 않게.
+                    claims = []
+
             return AnalysisResult(
                 scope_id=scope_id,
                 report=report,
                 qa_flow=self._qa,
                 evidence=ctx.evidence,
+                claims=claims,
             )
 
     def _write_graph_item(self, scope_id: str, item) -> None:

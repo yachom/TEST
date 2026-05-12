@@ -527,6 +527,52 @@ schema: { ... JSON schema ... }
 
 **enum drift 보호**: `tagging.sentiment` / `mapping.llm_fallback` 의 enum 값은 코드 enum(`AssetClass`, `SignalType` 등)과 일치해야 함. `tests/core/llm/test_prompt_catalog.py` 가 일치 검증.
 
+### 4.10b 확장 자리 ABC ([D-18](DECISIONS.md#d-18))
+
+추후 구현 swap 시 호출 측 변경 0 이 되도록 미리 열어둔 자리들. 현재 모두 placeholder 구현체.
+
+```python
+# core/agents/evaluation_orchestrator.py
+class EvaluationOrchestrator(ABC):
+    def evaluate(self, asset_id, profile, scope_id=None) -> list[EvaluationClaim]: ...
+
+# core/evaluation/scoring/base.py
+class ScoreBuilder(ABC):
+    def build(self, inp: ScoreInput) -> ScoreOutput: ...    # 신호 → 0~100 점수
+
+# core/shared/stores/analysis_run_store.py
+class AnalysisRunStore(ABC):
+    def save(self, record: AnalysisRunRecord): ...
+    def list_recent(self, limit=50) -> list[AnalysisRunRecord]: ...
+
+# core/shared/stores/evaluation_claim_store.py
+class EvaluationClaimStore(ABC):
+    def save(self, claim) -> str: ...
+    def find_by_asset(self, asset_id, dimension=None): ...
+
+# core/shared/infra/observability/recorders.py
+class LLMCallRecorder(ABC):
+    def record(self, call: LLMCallRecord): ...               # 자체 DB 적재 (Langfuse 와 별개)
+class UsageMetricsCollector(ABC):
+    def submit(self, snapshot: UsageSnapshot): ...           # PolicyGate snapshot 영구화
+
+# core/shared/infra/dashboard_exporter.py
+class DashboardExporter(ABC):
+    def export(self, dataset, output_dir, since=None) -> ExportResult: ...
+
+# core/shared/config/secrets.py
+class SecretProvider(ABC):
+    def get(self, key, default="") -> str: ...               # env / Airflow / Vault 흡수
+
+# core/agents/identifier_extractor.py
+class IdentifierExtractor(ABC):
+    def extract(self, address, raw_records) -> dict[str, str]: ...  # PNU/lawd_cd/... 추출
+```
+
+각 ABC 의 placeholder 구현체는 `composition.py` 의 `_build_*` 팩토리에서 wire-up. 실 구현 추가 시 팩토리 한 곳만 교체.
+
+DB 스키마에도 4 테이블 (`analysis_runs`, `evaluation_claims`, `llm_calls`, `agent_evidence_steps`) 이 CREATE 되어 있어 Sqlite*Store 추가 시 즉시 사용 가능.
+
 ### 4.11 TraceBackend / TracingLLMClient (observability)
 
 LLM 호출 / 에이전트 흐름을 외부 백엔드(Langfuse 등)로 추적.

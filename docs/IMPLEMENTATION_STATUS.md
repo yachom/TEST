@@ -14,13 +14,14 @@
 | 항목 | 상태 |
 |---|---|
 | 배치 파이프라인 (Airflow) | 뼈대 동작 (Mock Provider) |
-| On-demand 주소 분석 | 뼈대 동작 (Stub LLM + Mock 도구) |
-| 테스트 | **93 개 통과** |
-| CLI | `run-once`, `search`, `analyze-address`, `init-db` |
+| On-demand 주소 분석 | 뼈대 동작 (Stub LLM + Mock 도구) + `claims: list[EvaluationClaim]` 반환 (현재 stub) |
+| 테스트 | **119 개 통과** |
+| CLI | `run-once`, `search`, `analyze-address`, `init-db` (`.env` 자동 로드) |
 | 그래프 DB | InMemory (휘발) |
-| LLM | Stub / LangChain (OpenAI / Anthropic) 선택, 모든 호출이 PromptCatalog 경유 |
-| Observability | **TraceBackend ABC + NoOp/Stdout/Langfuse** (default: NoOp) |
-| 도구 | Mock 1 개 (`MockAddressInfoTool`) + VworldTool/TransactionTool/BuildingRegisterTool (real_tools 모드) |
+| LLM | Stub / LangChain (OpenAI / Anthropic), 모든 호출이 PromptCatalog 경유, TracingLLMClient wrap |
+| Observability | TraceBackend ABC + NoOp/Stdout/Langfuse (default: NoOp) |
+| **확장 자리 (D-18, 2026-05-12)** | **9 ABC + 4 DB 테이블 — placeholder 구현체로 미리 열림** |
+| 도구 | Mock 1 개 + VworldTool/TransactionTool/BuildingRegisterTool (real_tools 모드) |
 
 ```
 $ python -m interfaces.cli analyze-address "강남구 역삼동 123-45" \
@@ -471,6 +472,46 @@ QARetriever 가 ReportStore / SignalStore 를 인자로 받지만 POC 에서는 
 
 **Q. 자동 수집 데이터를 어떻게 온디멘드 분석에 반영하는가?**
 현재 미연동. Phase 4 의 6차 작업에서 옵션 A 로 구현 — 같은 어휘를 쓰면 그래프 traversal 으로 자동 연결. SignalJoiner 같은 별도 컴포넌트는 불필요할 가능성 큼 ([D-15](DECISIONS.md#d-15)).
+
+---
+
+## 6.5 확장 자리 — 의도적으로 비어있는 인터페이스 ([D-18](DECISIONS.md#d-18))
+
+"실제 구현은 추후, 인터페이스만 미리" 원칙으로 열어둔 자리들. 추후 구현체 추가 시 호출 측 변경 0.
+
+### 6.5.1 평가 축 (STO 자산 평가)
+
+| ABC | 위치 | 현재 placeholder | 활성화 시점 |
+|---|---|---|---|
+| `EvaluationOrchestrator` | [core/agents/evaluation_orchestrator.py](../core/agents/evaluation_orchestrator.py) | `DefaultEvaluationOrchestrator` (3 strategy 호출 + stub score 반환), `NoOp` | ScoreBuilder 실제 구현 시 자동 활성화 |
+| `ScoreBuilder` | [core/evaluation/scoring/base.py](../core/evaluation/scoring/base.py) | `StubScoreBuilder` (score=0.0) | 점수 산출 룰 (가중치) 도메인 의사결정 후 |
+| `IdentifierExtractor` | [core/agents/identifier_extractor.py](../core/agents/identifier_extractor.py) | `NoOpIdentifierExtractor`, `RegistryBased` (빈 registry) | 도구 확장 (주소 외 입력) 단계 |
+
+### 6.5.2 영구 저장 (대시보드 raw 자료)
+
+| ABC | 위치 | 현재 placeholder | 활성화 시점 |
+|---|---|---|---|
+| `AnalysisRunStore` | [core/shared/stores/analysis_run_store.py](../core/shared/stores/analysis_run_store.py) | `InMemoryAnalysisRunStore` | `SqliteAnalysisRunStore` 추가 시 |
+| `EvaluationClaimStore` | [core/shared/stores/evaluation_claim_store.py](../core/shared/stores/evaluation_claim_store.py) | `InMemoryEvaluationClaimStore` | 동일 |
+| `LLMCallRecorder` | [core/shared/infra/observability/recorders.py](../core/shared/infra/observability/recorders.py) | `NoOpLLMCallRecorder`, `InMemoryLLMCallRecorder` | `SqliteLLMCallRecorder` 추가 + `TracingLLMClient` wire-up |
+| `UsageMetricsCollector` | (위 동일) | `NoOpUsageMetricsCollector`, `InMemoryUsageMetricsCollector` | `Orchestrator.analyze()` 종료 시 PolicyGate snapshot 적재 |
+| `DashboardExporter` | [core/shared/infra/dashboard_exporter.py](../core/shared/infra/dashboard_exporter.py) | `NoOpDashboardExporter` | 영구 저장소가 채워진 후 |
+
+### 6.5.3 환경/시크릿
+
+| ABC | 위치 | 현재 placeholder | 활성화 시점 |
+|---|---|---|---|
+| `SecretProvider` | [core/shared/config/secrets.py](../core/shared/config/secrets.py) | `EnvSecretProvider`, `ChainSecretProvider`, `StaticSecretProvider` | Airflow / Vault / AWS 추가 시 새 provider 한 클래스 |
+
+### 6.5.4 DB 스키마 (CREATE TABLE 만, write 미연결)
+
+`python -m interfaces.cli init-db` 가 다음 테이블도 생성:
+- `analysis_runs` — on-demand 분석 1회 메타 + 누적 metric
+- `evaluation_claims` — 3축 평가 결과
+- `llm_calls` — LLM 호출 단위 metric (토큰/비용/지연/prompt 버전)
+- `agent_evidence_steps` — evidence trace 영구화
+
+`db_schema.py` 의 SQL 은 인덱스까지 정의되어 있어, Sqlite*Store 추가 시 INSERT/SELECT 만 작성하면 즉시 사용 가능.
 
 ---
 

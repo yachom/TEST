@@ -339,6 +339,52 @@
 
 ---
 
+## D-18: 4 축 확장 자리를 ABC + placeholder 로 미리 열어둠
+
+**시점**: 2026-05-12
+**상태**: 채택
+
+**결정**: STO 평가 / LLM 추적 / 사용량 모니터링 / 대시보드 기반자료 4 축의 확장 자리를
+ABC + placeholder 구현체로 한 번에 열어둠. 실제 구현은 추후 채운다.
+
+**열린 자리 (9 ABC + 4 DB 테이블)**:
+
+| ABC | placeholder | 추후 구현 후보 |
+|---|---|---|
+| `EvaluationOrchestrator` | `DefaultEvaluationOrchestrator` (strategy registry), `NoOpEvaluationOrchestrator` | 가중치 조정 + 결과 통합 |
+| `ScoreBuilder` | `StubScoreBuilder` (always 0.0) | `WeightedSignalScoreBuilder` / `LLMRubricScoreBuilder` |
+| `AnalysisRunStore` | `InMemoryAnalysisRunStore` | `SqliteAnalysisRunStore` / `PostgresAnalysisRunStore` |
+| `EvaluationClaimStore` | `InMemoryEvaluationClaimStore` | `Sqlite*` / `Postgres*` |
+| `LLMCallRecorder` | `NoOpLLMCallRecorder`, `InMemoryLLMCallRecorder` | `SqliteLLMCallRecorder` (TracingLLMClient 가 호출) |
+| `UsageMetricsCollector` | `NoOpUsageMetricsCollector`, `InMemoryUsageMetricsCollector` | `Sqlite*` (Orchestrator 종료 시 PolicyGate snapshot 적재) |
+| `DashboardExporter` | `NoOpDashboardExporter` | `CsvDashboardExporter` / `ParquetDashboardExporter` / `PostgresViewExporter` |
+| `SecretProvider` | `EnvSecretProvider`, `ChainSecretProvider`, `StaticSecretProvider` | `AirflowVariableSecretProvider` / `AwsSecretsManagerProvider` / `VaultSecretProvider` |
+| `IdentifierExtractor` | `NoOpIdentifierExtractor`, `RegistryBasedIdentifierExtractor` (어댑터 빈 registry) | source_type 별 추출 어댑터 (vworld / building_register / transaction 등) |
+
+**DB 테이블 (스키마만, write 미연결)**:
+- `analysis_runs` — on-demand 분석 1회 메타
+- `evaluation_claims` — 3축 평가 결과
+- `llm_calls` — LLM 호출 단위 metric
+- `agent_evidence_steps` — evidence trace 영구화
+
+**이유**:
+- 추후 구현체 추가 시 인터페이스 변경 0 → 호출 측 (Orchestrator / Tracing / 보고서) 영향 없음
+- GitHub history 가 의도를 명시 — "이 자리는 의도적으로 비어있다, Phase N 에 채운다"
+- 한 번에 묶으면 점진 PR 보다 응집도 ↑
+
+**대안 (기각)**:
+- **필요 시 그때그때 추가** — 점진적이지만 매번 호출 측 변경 필요. 변경 비용이 누적.
+- **ABC 없이 직접 구현체부터** — POC 단계에서 ABC 비용 너무 작음. 미래 swap 시 매번 마이그레이션.
+- **실제 구현까지 한 번에** — 점수 산출 / SqliteStore / 대시보드까지 들어가면 PR 비대 + 결정 압박 (점수 가중치 누가 정하는가).
+
+**구현체 wire-up**: `interfaces/composition.py` 의 `_build_*` 팩토리 함수들이 환경에 따라
+구현체 선택. 현재는 모두 placeholder, 추후 SqliteStore 구현체가 추가되면 팩토리 한 줄만 교체.
+
+**Orchestrator 변경**: `Orchestrator.analyze()` 가 `EvaluationOrchestrator.evaluate()` 호출 →
+`AnalysisResult.claims: list[EvaluationClaim]` 필드 추가. 현재는 빈 list 또는 stub claim (score=0.0).
+
+---
+
 ## 결정 추가 양식
 
 새 결정을 추가할 때 다음 양식으로:

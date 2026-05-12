@@ -25,7 +25,20 @@ from core.shared.infra.llm_client import LLMClient, StubLLMClient
 from core.shared.infra.db_schema import DatabaseSchemaInitializer
 from core.shared.infra.observability.base import TraceBackend
 from core.shared.infra.observability.noop_backend import NoOpBackend
+from core.shared.infra.observability.recorders import (
+    LLMCallRecorder,
+    NoOpLLMCallRecorder,
+    NoOpUsageMetricsCollector,
+    UsageMetricsCollector,
+)
+from core.shared.infra.dashboard_exporter import DashboardExporter, NoOpDashboardExporter
 from core.shared.infra.tracing_llm_client import TracingLLMClient
+from core.shared.config.secrets import EnvSecretProvider, SecretProvider
+from core.shared.stores.analysis_run_store import AnalysisRunStore, InMemoryAnalysisRunStore
+from core.shared.stores.evaluation_claim_store import (
+    EvaluationClaimStore,
+    InMemoryEvaluationClaimStore,
+)
 from core.llm.catalog import PromptCatalog
 
 from core.collectors.news.mock import MockNewsSearchProvider
@@ -54,6 +67,41 @@ _ROOT = Path(__file__).parent.parent
 # PromptCatalog 는 stateless + cache 내장 → 프로세스 공용 인스턴스로 충분.
 # 테스트에서 격리 필요 시 build_pipeline_from_profile / build_address_analysis_orchestrator 인자로 override.
 _DEFAULT_PROMPT_CATALOG = PromptCatalog()
+
+# ---------------------------------------------------------------------------
+# 확장 자리 (POC placeholder) — 추후 SqliteStore / SqliteLLMCallRecorder 등 추가 시
+# 이 팩토리들만 교체하면 됨. 호출 측 코드 변경 0.
+# ---------------------------------------------------------------------------
+
+
+def _build_secret_provider() -> SecretProvider:
+    """현재는 EnvSecretProvider (os.environ + .env). 추후 ChainSecretProvider 로 확장."""
+    return EnvSecretProvider()
+
+
+def _build_llm_call_recorder() -> LLMCallRecorder:
+    """현재는 NoOp — DB write 없음. 추후 SqliteLLMCallRecorder 로 교체."""
+    return NoOpLLMCallRecorder()
+
+
+def _build_usage_metrics_collector() -> UsageMetricsCollector:
+    """현재는 NoOp — PolicyGate snapshot 영구화 없음."""
+    return NoOpUsageMetricsCollector()
+
+
+def _build_analysis_run_store() -> AnalysisRunStore:
+    """현재는 InMemory — 프로세스 종료 시 휘발."""
+    return InMemoryAnalysisRunStore()
+
+
+def _build_evaluation_claim_store() -> EvaluationClaimStore:
+    """현재는 InMemory — claim 영구 저장 없음."""
+    return InMemoryEvaluationClaimStore()
+
+
+def _build_dashboard_exporter() -> DashboardExporter:
+    """현재는 NoOp — 영구 저장소가 채워진 후 활성화."""
+    return NoOpDashboardExporter()
 
 
 def _load_policy() -> dict:
@@ -345,6 +393,7 @@ def build_address_analysis_orchestrator(
     trace_backend=None 이면 runtime.yaml observability 설정 기반 자동 선택 (noop default).
     """
     catalog = prompt_catalog or _DEFAULT_PROMPT_CATALOG
+    from core.agents.evaluation_orchestrator import DefaultEvaluationOrchestrator
     from core.agents.exploration.critic import Critic
     from core.agents.exploration.flow import ExplorationFlow
     from core.agents.exploration.planner import Planner
@@ -358,10 +407,14 @@ def build_address_analysis_orchestrator(
     from core.agents.qa.synthesizer import Synthesizer
     from core.agents.qa.verifier import Verifier
     from core.collectors.news.repositories.in_memory.in_memory_signal_store import InMemorySignalStore
+    from core.evaluation.quantitative.stub import QuantitativeEvaluationStrategy
+    from core.evaluation.sentiment.strategy import SentimentEvaluationStrategy
+    from core.evaluation.structural.stub import StructuralEvaluationStrategy
     from core.processors.graph_writers.pattern_builder import GraphPatternBuilder
     from core.processors.ontology_mapper.base import OntologyMapper
     from core.processors.ontology_mapper.llm_fallback import LLMFallbackMapper
     from core.reporting.report_builder import ReportBuilder
+    from core.shared.domain.evaluation import EvaluationDimension
     from core.shared.stores.graph_store import InMemoryGraphStore
     from core.shared.stores.in_memory_report_store import InMemoryReportStore
 
@@ -417,6 +470,16 @@ def build_address_analysis_orchestrator(
         verifier=Verifier(llm, prompt_catalog=catalog),
     )
 
+    # 확장 자리: 3축 EvaluationStrategy 통합.
+    # 현재는 모두 stub (score=0.0) 라 AnalysisResult.claims 가 빈 list 에 가깝지만,
+    # 추후 score_builder / Quantitative / Structural 실 구현 시 자동 활성화.
+    strategies = {
+        EvaluationDimension.SENTIMENT: SentimentEvaluationStrategy(signal_store),
+        EvaluationDimension.QUANTITATIVE: QuantitativeEvaluationStrategy(),
+        EvaluationDimension.STRUCTURAL: StructuralEvaluationStrategy(),
+    }
+    evaluation_orchestrator = DefaultEvaluationOrchestrator(strategies=strategies)
+
     return Orchestrator(
         initial_collector=initial_collector,
         exploration_flow=exploration_flow,
@@ -426,4 +489,6 @@ def build_address_analysis_orchestrator(
         report_store=report_store,
         qa_flow=qa_flow,
         trace_backend=backend,
+        evaluation_orchestrator=evaluation_orchestrator,
+        profile=profile,
     )

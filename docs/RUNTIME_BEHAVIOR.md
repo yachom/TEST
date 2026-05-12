@@ -31,7 +31,7 @@ pip install -e ".[dev,realestate]"
 테스트:
 ```bash
 $ pytest -q
-93 passed, 19 warnings in 0.22s
+119 passed, 19 warnings in 0.22s
 ```
 
 기본 모드(외부 키 없음)에서:
@@ -192,10 +192,12 @@ FNPRICING_DATABASE_URL=postgresql+psycopg://user:pass@host:5432/fnpricing python
 **출력**:
 ```
 [init-db] url=sqlite:///./var/fnpricing.db schema_version=1
-  tables=schema_migrations, news_articles, article_embeddings, ontology_tags, market_signals, run_summaries
+  tables=schema_migrations, news_articles, article_embeddings, ontology_tags, market_signals, run_summaries, analysis_runs, evaluation_claims, llm_calls, agent_evidence_steps
 ```
 
 기본 DB: `./var/fnpricing.db` (SQLite). `.gitignore` 에서 `var/` 제외.
+
+테이블 중 6개(`schema_migrations`, `news_articles`, `article_embeddings`, `ontology_tags`, `market_signals`, `run_summaries`)는 배치 파이프라인이 실제 사용. 나머지 4개(`analysis_runs`, `evaluation_claims`, `llm_calls`, `agent_evidence_steps`)는 확장 자리 — 스키마만 생성, write 는 추후 SqliteStore 구현체가 추가되면 활성화 ([D-18](DECISIONS.md#d-18)).
 
 ---
 
@@ -323,7 +325,7 @@ qa.ask(scope_id, question) → {
 ```bash
 # 1) 단위 테스트
 pytest -q
-# expected: 93 passed
+# expected: 119 passed
 
 # 2) 배치 1회
 python -m interfaces.cli run-once

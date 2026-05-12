@@ -25,6 +25,12 @@ class DatabaseSchemaInitializer:
         "ontology_tags",
         "market_signals",
         "run_summaries",
+        # ---- 확장 자리 (현재는 스키마만 생성, write 미연결) ----
+        # 추후 Sqlite*Store 구현체가 추가되면 활성화됨.
+        "analysis_runs",
+        "evaluation_claims",
+        "llm_calls",
+        "agent_evidence_steps",
     )
 
     def __init__(self, settings: DatabaseSettings) -> None:
@@ -169,4 +175,87 @@ class DatabaseSchemaInitializer:
             finished_at TEXT,
             summary_json TEXT NOT NULL
         );
+
+        -- ===================================================================
+        -- 확장 자리 (현재는 스키마만, write 미연결).
+        -- core/shared/stores/{analysis_run_store, evaluation_claim_store}.py
+        -- core/shared/infra/observability/recorders.py
+        -- 의 Sqlite 구현체가 추후 추가되면 채워진다.
+        -- ===================================================================
+
+        -- on-demand 주소 분석 1회분 메타 + 누적 metric.
+        CREATE TABLE IF NOT EXISTS analysis_runs (
+            scope_id TEXT PRIMARY KEY,                -- analysis_<uuid>
+            asset_class TEXT NOT NULL,
+            address TEXT NOT NULL,
+            started_at TEXT NOT NULL,
+            finished_at TEXT,
+            total_cost_usd REAL NOT NULL DEFAULT 0.0,
+            total_input_tokens INTEGER NOT NULL DEFAULT 0,
+            total_output_tokens INTEGER NOT NULL DEFAULT 0,
+            total_llm_calls INTEGER NOT NULL DEFAULT 0,
+            total_tool_calls INTEGER NOT NULL DEFAULT 0,
+            report_summary TEXT,
+            report_json TEXT,
+            error TEXT,
+            metadata_json TEXT
+        );
+        CREATE INDEX IF NOT EXISTS idx_analysis_runs_asset_class ON analysis_runs(asset_class);
+        CREATE INDEX IF NOT EXISTS idx_analysis_runs_started_at ON analysis_runs(started_at);
+
+        -- 3축 평가 결과 (sentiment / quantitative / structural × target).
+        CREATE TABLE IF NOT EXISTS evaluation_claims (
+            claim_id TEXT PRIMARY KEY,
+            scope_id TEXT,                            -- on-demand 면 analysis_*, 배치면 batch_*
+            asset_id TEXT NOT NULL,
+            target_type TEXT NOT NULL,                -- building, tenant, song, artist
+            target_key TEXT NOT NULL,                 -- PNU, 사업자번호, ISRC 등
+            dimension TEXT NOT NULL,                  -- sentiment | quantitative | structural
+            score REAL NOT NULL,
+            rationale TEXT,
+            evidence_json TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            metadata_json TEXT
+        );
+        CREATE INDEX IF NOT EXISTS idx_evaluation_claims_asset_id ON evaluation_claims(asset_id);
+        CREATE INDEX IF NOT EXISTS idx_evaluation_claims_scope_id ON evaluation_claims(scope_id);
+        CREATE INDEX IF NOT EXISTS idx_evaluation_claims_dimension ON evaluation_claims(dimension);
+        CREATE INDEX IF NOT EXISTS idx_evaluation_claims_created_at ON evaluation_claims(created_at);
+
+        -- LLM 호출 단위 metric (토큰/비용/지연/prompt 버전).
+        CREATE TABLE IF NOT EXISTS llm_calls (
+            call_id TEXT PRIMARY KEY,
+            scope_id TEXT,                            -- analysis_* | batch_* | NULL
+            role TEXT NOT NULL,                       -- ontology_tagging, exploration.planner, ...
+            model TEXT NOT NULL,
+            prompt_key TEXT,                          -- exploration.planner (PromptCatalog key)
+            prompt_version_hash TEXT,
+            input_tokens INTEGER NOT NULL DEFAULT 0,
+            output_tokens INTEGER NOT NULL DEFAULT 0,
+            cost_usd REAL NOT NULL DEFAULT 0.0,
+            latency_ms INTEGER,
+            occurred_at TEXT NOT NULL,
+            error TEXT,
+            metadata_json TEXT
+        );
+        CREATE INDEX IF NOT EXISTS idx_llm_calls_scope_id ON llm_calls(scope_id);
+        CREATE INDEX IF NOT EXISTS idx_llm_calls_role ON llm_calls(role);
+        CREATE INDEX IF NOT EXISTS idx_llm_calls_model ON llm_calls(model);
+        CREATE INDEX IF NOT EXISTS idx_llm_calls_occurred_at ON llm_calls(occurred_at);
+
+        -- 에이전트 evidence step 영구화 — 어떤 (서브)에이전트가 어떤 도구를 호출했는지.
+        CREATE TABLE IF NOT EXISTS agent_evidence_steps (
+            step_id_global INTEGER PRIMARY KEY AUTOINCREMENT,
+            scope_id TEXT NOT NULL,
+            step_id INTEGER NOT NULL,                 -- scope 내부 sequential id
+            actor TEXT NOT NULL,                      -- exploration.planner, qa.verifier, ...
+            tool_name TEXT NOT NULL,
+            rationale TEXT,
+            input_summary_json TEXT,
+            result_summary_json TEXT,
+            occurred_at TEXT NOT NULL,
+            UNIQUE(scope_id, step_id)
+        );
+        CREATE INDEX IF NOT EXISTS idx_evidence_steps_scope_id ON agent_evidence_steps(scope_id);
+        CREATE INDEX IF NOT EXISTS idx_evidence_steps_actor ON agent_evidence_steps(actor);
         """
